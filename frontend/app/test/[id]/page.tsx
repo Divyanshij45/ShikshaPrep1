@@ -75,7 +75,7 @@ export default function MockTestPage() {
   useEffect(() => {
     const getMockTests = async () => {
       try {
-        const response = await makeAuthenticatedRequest(`/tests/${testId}`, {
+        const response = await makeAuthenticatedRequest(`/api/tests/${testId}`, {
           method: "GET",
         });
         if (response?.ok) {
@@ -224,8 +224,7 @@ export default function MockTestPage() {
     const results = calculateResults();
 
     try {
-      const response = await makeAuthenticatedRequest(
-        `/tests/${testId}/submit`,
+      const response = await makeAuthenticatedRequest(`/api/tests/${testId}/submit`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

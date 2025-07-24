@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   FileText,
   Eye,
@@ -10,7 +11,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Loader,
   RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ProtectedRoute } from "@/components/protected-route";
-import { FileUpload } from "@/components/file-upload";
+import { FileUpload } from "@/components/file-upload"; // Corrected import path
 import { useAuth } from "@/contexts/auth-context";
 import { makeAuthenticatedRequest } from "@/utils/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -58,7 +58,6 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isUploaded, setIsUploaded] = useState(false);
   const [mockTests, setMockTests] = useState<MockTest[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalTests: 0,
@@ -69,55 +68,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
+
   const { user } = useAuth();
 
-  // Fetch user's mock tests and stats
-  useEffect(() => {
-    fetchDashboardData();
-  }, [uploadSuccess, isUploaded]);
-
-  useEffect(() => {
-    const hasProcessing = mockTests.some(
-      (test) => test.status === "processing"
-    );
-    if (!hasProcessing) return;
-
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 8000); // Poll every 8s only when needed
-
-    return () => clearInterval(interval);
-  }, [mockTests]);
-
-  // useEffect(() => {
-  //   let intervalId: NodeJS.Timeout | undefined
-
-  //   const startPolling = () => {
-  //     intervalId = setInterval(() => {
-  //       console.log("Polling for test updates...")
-  //       fetchDashboardData()
-  //     }, 5000) // Poll every 5 seconds
-  //   }
-
-  //   const stopPolling = () => {
-  //     if (intervalId) {
-  //       clearInterval(intervalId)
-  //       intervalId = undefined
-  //       console.log("Stopped polling.")
-  //     }
-  //   }
-
-  //   // Start polling when component mounts
-  //   startPolling()
-
-  //   // Clean up interval on unmount
-  //   return () => stopPolling()
-  // }, []) // Empty dependency array means this runs once on mount and cleans up on unmount
+  // Use useRef to persist the interval ID across renders
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-
       // Fetch mock tests
       const testsResponse = await makeAuthenticatedRequest("/tests");
       if (testsResponse) {
@@ -129,12 +88,17 @@ export default function DashboardPage() {
           (test: MockTest) => test.status === "processing"
         );
 
-        // If no tests are processing, we can stop polling
-        let intervalId: NodeJS.Timeout | undefined;
-        if (!anyProcessing && intervalId) {
-          // Check intervalId to ensure it exists before clearing
-          clearInterval(intervalId);
-          intervalId = undefined; // Reset intervalId
+        // If there are processing tests and polling is not active, start it
+        if (anyProcessing && !pollingIntervalRef.current) {
+          console.log("Starting polling for test updates...");
+          pollingIntervalRef.current = setInterval(() => {
+            fetchDashboardData(); // Call itself to re-fetch
+          }, 8000); // Poll every 8 seconds
+        }
+        // If no tests are processing and polling is active, stop it
+        else if (!anyProcessing && pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
           console.log("All tests processed, stopped polling.");
         }
 
@@ -169,6 +133,18 @@ export default function DashboardPage() {
     }
   };
 
+  // Initial fetch on component mount
+  useEffect(() => {
+    fetchDashboardData();
+    // Cleanup interval on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
   const handleUploadSuccess = (result: any) => {
     setUploadSuccess(
       "PDF uploaded successfully! Your mock test is being generated."
@@ -176,20 +152,23 @@ export default function DashboardPage() {
     setError("");
     // Add the new test to the list
     const newTest: MockTest = {
-      _id: result._id,
-      name: result.name,
-      originalFileName: result.originalFileName,
+      _id: result.testId, // Use testId from the backend response
+      name: result.name, // Use name from the backend response
+      originalFileName: result.originalFileName, // Use originalFileName from backend
       questions: 0, // Will be updated when processing completes
       status: "processing",
-      createdAt: new Date().toISOString(),
+      createdAt: result.createdAt, // Use createdAt from backend
     };
     setMockTests((prev) => [newTest, ...prev]);
-
     // Update stats
     setStats((prev) => ({
       ...prev,
       totalTests: prev.totalTests + 1,
     }));
+    // Ensure polling starts if it's not already
+    if (!pollingIntervalRef.current) {
+      fetchDashboardData(); // Trigger an immediate fetch to start polling if needed
+    }
   };
 
   const handleUploadError = (errorMessage: string) => {
@@ -199,18 +178,17 @@ export default function DashboardPage() {
 
   const handleDeleteTest = async (testId: string) => {
     if (!confirm("Are you sure you want to delete this test?")) return;
-
     try {
       const response = await makeAuthenticatedRequest(`/tests/${testId}`, {
         method: "DELETE",
       });
-
       if (response?.ok) {
         setMockTests((prev) => prev.filter((test) => test._id !== testId));
         setStats((prev) => ({
           ...prev,
           totalTests: prev.totalTests - 1,
         }));
+        fetchDashboardData();
       }
     } catch (err) {
       setError("Failed to delete test");
@@ -281,18 +259,18 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user?.username}!
+              Welcome back,{" "}
+              {<span className="!capitalize">{user?.username}</span>}!{" "}
+              {/* User's name is now consistently available */}
             </h1>
             <p className="text-gray-600">
               Upload PDFs and generate mock tests with AI
             </p>
           </div>
-
           {/* Alerts */}
           {error && (
             <Alert variant="destructive" className="mb-6">
@@ -300,14 +278,12 @@ export default function DashboardPage() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-
           {uploadSuccess && (
             <Alert className="mb-6">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>{uploadSuccess}</AlertDescription>
             </Alert>
           )}
-
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
@@ -324,7 +300,6 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -339,7 +314,6 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -354,7 +328,6 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -370,7 +343,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-
           {/* File Upload Section */}
           <div className="mb-8">
             <FileUpload
@@ -378,7 +350,6 @@ export default function DashboardPage() {
               onUploadError={handleUploadError}
             />
           </div>
-
           {/* Tests Table */}
           <Card>
             <CardHeader>

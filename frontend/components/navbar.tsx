@@ -1,21 +1,26 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState } from "react"
-import { Menu, X, FileText, User, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/contexts/auth-context"
+import Link from "next/link";
+import { useState } from "react";
+import { Menu, X, FileText, User, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const { user, logout } = useAuth()
-  const isAuthenticated = !!user
+  const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const isAuthenticated = !!user;
 
   const handleLogout = () => {
-    logout()
-    setIsOpen(false)
-  }
+    logout();
+    setIsOpen(false);
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -24,28 +29,39 @@ export function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <FileText className="h-8 w-8 text-blue-600" />
-              <span className="font-bold text-xl text-gray-900">MockTestAI</span>
+              <span className="font-bold text-xl text-gray-900">
+                MockTestAI
+              </span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link
+              href="/"
+              className="text-gray-700 hover:text-blue-600 transition-colors"
+            >
               Home
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link
+              href="/about"
+              className="text-gray-700 hover:text-blue-600 transition-colors"
+            >
               About
             </Link>
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                >
                   Dashboard
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
                       <User className="h-4 w-4 mr-2" />
-                      {user?.username}
+                      <span className="capitalize">{user?.username}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -74,8 +90,16 @@ export function Navbar() {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
@@ -131,5 +155,5 @@ export function Navbar() {
         )}
       </div>
     </nav>
-  )
+  );
 }

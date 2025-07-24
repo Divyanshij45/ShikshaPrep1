@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { makeAuthenticatedRequest } from "@/utils/api";
 import { toast } from "sonner";
+import { Input } from "postcss";
 
 // TypeScript interfaces
 interface Question {
@@ -59,12 +60,17 @@ export default function MockTestPage() {
     new Set()
   );
   const [timeLeft, setTimeLeft] = useState<number>(60); // in seconds
+  const [time, setTime] = useState<string>(""); // initial time in seconds
+  const [isSetTime, setIsSetTime] = useState<boolean>(false);
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [isReview, setIsReview] = useState<boolean>(false);
   const [isTestCompleted, setIsTestCompleted] = useState<boolean>(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState<boolean>(false);
   const [showConfirmStart, setShowConfirmStart] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  let isInvalid = false;
+  let parsedSeconds = 0;
 
   useEffect(() => {
     const getMockTests = async () => {
@@ -84,19 +90,28 @@ export default function MockTestPage() {
     }
   }, [testId]);
 
-  const convertToSeconds = (timeLeft: string): number => {
-    if (timeLeft.endsWith("h")) {
-      const minutes = parseInt(timeLeft.slice(0, -1), 10);
-      return minutes * 60 * 60;
-    } else if (timeLeft.endsWith("m")) {
-      const minutes = parseInt(timeLeft.slice(0, -1), 10);
-      return minutes * 60;
-    } else if (timeLeft.endsWith("s")) {
-      return parseInt(timeLeft.slice(0, -1), 10);
-    } else {
-      throw new Error(
-        "Invalid duration format. Use 'Xm' for minutes or 'Xs' for seconds."
-      );
+  const convertToSeconds = (input: string): number => {
+    const trimmed = input.trim().toLowerCase();
+
+    const regex = /^(\d+)([hms])$/; // Match formats like "30m", "1h", "45s"
+    const match = trimmed.match(regex);
+
+    if (!match) {
+      throw new Error("Invalid duration format. Use 'Xm', 'Xh', or 'Xs'.");
+    }
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+
+    switch (unit) {
+      case "h":
+        return value * 3600;
+      case "m":
+        return value * 60;
+      case "s":
+        return value;
+      default:
+        throw new Error("Invalid time unit.");
     }
   };
 
@@ -116,6 +131,13 @@ export default function MockTestPage() {
     }
   };
 
+  try {
+    parsedSeconds = convertToSeconds(time);
+    isInvalid = parsedSeconds > convertToSeconds(testData?.duration);
+  } catch {
+    isInvalid = true;
+  }
+
   useEffect(() => {
     if (testData?.duration) {
       const seconds = convertToSeconds(testData.duration);
@@ -125,7 +147,7 @@ export default function MockTestPage() {
 
   // Timer effect
   useEffect(() => {
-    if (!isTestStarted || isTestCompleted || timeLeft <= 0) return;
+    if (!isTestStarted || isTestCompleted || isReview || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev: number) => {
@@ -342,8 +364,18 @@ export default function MockTestPage() {
             </h1>
             <div className="flex items-center justify-center gap-6 text-gray-600 mb-6">
               <div className="flex items-center gap-2">
+                <span
+                  onClick={() => setIsSetTime(true)}
+                  className="text-blue-700 text-sm underline cursor-pointer hover:text-blue-800 transition-colors"
+                >
+                  Set Time
+                </span>
                 <Clock className="w-5 h-5" />
-                <span>{formatDuration(testData?.duration)}</span>
+                <span>
+                  {formatDuration(
+                    !isSetTime && time ? time : testData?.duration || "0m"
+                  )}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5" />
@@ -356,8 +388,11 @@ export default function MockTestPage() {
             <h2 className="text-xl font-semibold">Instructions:</h2>
             <ul className="space-y-2 pl-4">
               <li>
-                • You have {formatDuration(testData?.duration)} to complete this
-                test
+                • You have{" "}
+                {formatDuration(
+                  !isSetTime && time ? time : testData?.duration || "0m"
+                )}{" "}
+                to complete this test
               </li>
               <li>• The test will auto-submit when time expires</li>
               <li>
@@ -379,6 +414,55 @@ export default function MockTestPage() {
           </div>
         </div>
 
+        {isSetTime && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <label
+                htmlFor="timeInput"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Enter custom time (e.g., 45m, 1h, 30s)
+              </label>
+              <input
+                id="timeInput"
+                type="text"
+                name="time"
+                placeholder="e.g., 30m"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4"
+              />
+              {isInvalid && (
+                <p className="text-sm text-red-500 mb-2">
+                  Enter time like <strong>30m</strong>, <strong>1h</strong>, or{" "}
+                  <strong>45s</strong>
+                </p>
+              )}
+              <div className="flex justify-between">
+                <button
+                  onClick={() => {
+                    setTime("");
+                    setIsSetTime(false);
+                  }}
+                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isInvalid}
+                  onClick={() => {
+                    setTimeLeft(parsedSeconds);
+                    setIsSetTime(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  Set Time
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Confirm Start Modal */}
         {showConfirmStart && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -399,7 +483,10 @@ export default function MockTestPage() {
                     <Clock className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" />
                     <span>
                       Timer will start immediately (
-                      {formatDuration(testData?.duration)})
+                      {formatDuration(
+                        !isSetTime && time ? time : testData?.duration || "0m"
+                      )}
+                      )
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
@@ -461,22 +548,26 @@ export default function MockTestPage() {
           <div className="flex items-center gap-4">
             {/* Timer */}
             <div
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-lg font-semibold ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-md font-semibold ${
                 timeLeft < 300
                   ? "bg-red-100 text-red-700"
                   : "bg-blue-100 text-blue-700"
               }`}
             >
               <Clock className="w-5 h-5" />
-              {formatTime(timeLeft)}
+              {isReview ? "--" : formatTime(timeLeft)}
             </div>
 
             {/* Submit Button */}
             <button
-              onClick={() => setShowConfirmSubmit(true)}
+              onClick={() => {
+                isReview
+                  ? router.push("/dashboard")
+                  : setShowConfirmSubmit(true);
+              }}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              Submit Test
+              {isReview ? "Back to Dashboard" : "Submit Test"}
             </button>
           </div>
         </div>

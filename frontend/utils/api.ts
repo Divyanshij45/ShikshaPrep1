@@ -63,7 +63,7 @@ export async function makeAuthenticatedRequest(endpoint: string, options?: Reque
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/api${endpoint}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data`);(`http://localhost:5000/api${endpoint}`, {
       ...options,
       headers,
     })

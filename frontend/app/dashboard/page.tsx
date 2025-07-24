@@ -78,7 +78,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       // Fetch mock tests
-      const testsResponse = await makeAuthenticatedRequest("/tests");
+      const testsResponse = await makeAuthenticatedRequest("/api/tests");
       if (testsResponse) {
         const testsData = await testsResponse.json();
         setMockTests(testsData.tests || []);
@@ -179,7 +179,7 @@ export default function DashboardPage() {
   const handleDeleteTest = async (testId: string) => {
     if (!confirm("Are you sure you want to delete this test?")) return;
     try {
-      const response = await makeAuthenticatedRequest(`/tests/${testId}`, {
+      const response = await makeAuthenticatedRequest(`/api/tests/${testId}`, {
         method: "DELETE",
       });
       if (response?.ok) {

@@ -36,7 +36,7 @@ export async function uploadPDF(file: File, onProgress?: (progress: number) => v
         reject(new Error("Network error during upload."))
       })
 
-      xhr.open("POST", "http://localhost:5000/api/upload/pdf")
+      xhr.open("POST", `${process.env.NEXT_PUBLIC_API_URL}/api/upload/pdf`)
       xhr.setRequestHeader("Authorization", `Bearer ${token}`)
       xhr.send(formData)
     } catch (error) {
@@ -63,10 +63,10 @@ export async function makeAuthenticatedRequest(endpoint: string, options?: Reque
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`);({
-      ...options,
-      headers,
-    })
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+  ...options,
+  headers,
+})
 
     // Handle token expiration or invalid token
     if (response.status === 401 || response.status === 403) {

@@ -54,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data`);("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data`);
+      ( {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data`);("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data`); ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",

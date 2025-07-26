@@ -43,11 +43,6 @@ export default function SignUpPage() {
       return
     }
 
-    if (!formData.agreeToTerms) {
-      setError("Please agree to the terms and conditions")
-      return
-    }
-
     setIsLoading(true)
 
     const result = await register(formData.username, formData.email, formData.password)
@@ -78,7 +73,7 @@ export default function SignUpPage() {
             <span className="font-bold text-xl text-gray-900">MockTestAI</span>
           </div>
           <CardTitle className="text-2xl">Create your account</CardTitle>
-          <CardDescription>Join thousands of users creating mock tests from PDFs</CardDescription>
+          <CardDescription>Easily create mock tests from your PDFs in minutes</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +96,7 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder=""
                 value={formData.email}
                 onChange={handleInputChange}
                 required
@@ -164,27 +159,9 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="terms"
-                checked={formData.agreeToTerms}
-                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, agreeToTerms: checked as boolean }))}
-              />
-              <Label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the{" "}
-                <Link href="/terms" className="text-blue-600 hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </Link>
-              </Label>
-            </div>
-
             {error && <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">{error}</div>}
 
-            <Button type="submit" className="w-full" disabled={!formData.agreeToTerms || isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>

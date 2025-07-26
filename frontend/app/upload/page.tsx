@@ -23,20 +23,20 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="p-10 text-center">
-      <h1 className="text-3xl font-bold mb-6">Upload Your Question Paper</h1>
+    <div className="p-6 sm:p-10 flex flex-col items-center justify-center min-h-screen text-center">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Upload Your Question Paper</h1>
 
       <input
         type="file"
         accept=".pdf"
         onChange={handleFileChange}
-        className="mb-4"
+        className="mb-4 w-full max-w-xs sm:max-w-md px-3 py-2 border rounded"
       />
 
       {showStartButton && (
         <button
           onClick={handleStartTest}
-          className="ml-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700"
+          className="mt-4 sm:mt-0 sm:ml-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Start Test
         </button>

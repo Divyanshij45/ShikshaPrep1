@@ -52,15 +52,14 @@ export default function MockTestPage() {
   const params = useParams();
   const testId = params?.id as string;
 
-  // Test state
   const [testData, setTestData] = useState<TestData>({} as TestData);
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(
     new Set()
   );
-  const [timeLeft, setTimeLeft] = useState<number>(60); // in seconds
-  const [time, setTime] = useState<string>(""); // initial time in seconds
+  const [timeLeft, setTimeLeft] = useState<number>(60); 
+  const [time, setTime] = useState<string>(""); 
   const [isSetTime, setIsSetTime] = useState<boolean>(false);
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [isReview, setIsReview] = useState<boolean>(false);
@@ -145,7 +144,7 @@ export default function MockTestPage() {
     }
   }, [testData?.duration]);
 
-  // Timer effect
+  
   useEffect(() => {
     if (!isTestStarted || isTestCompleted || isReview || timeLeft <= 0) return;
 
@@ -330,7 +329,7 @@ export default function MockTestPage() {
             <div className="text-gray-600">Overall Score</div>
           </div>
 
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
               onClick={() => router.push("/dashboard")}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -385,7 +384,7 @@ export default function MockTestPage() {
 
           <div className="space-y-4 mb-8 text-gray-700">
             <h2 className="text-xl font-semibold">Instructions:</h2>
-            <ul className="space-y-2 pl-4">
+            <ul className="space-y-2 pl-4 space-y-3 pl-4 text-sm sm:text-base">
               <li>
                 • You have{" "}
                 {formatDuration(
@@ -539,7 +538,7 @@ export default function MockTestPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row gap-4 sm:gap-0 items-start sm:items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
             {testData.name}
           </h1>
@@ -572,9 +571,9 @@ export default function MockTestPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto flex gap-6 p-6">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 p-4">
         {/* Question Panel */}
-        <div className="flex-1 bg-white rounded-lg shadow-sm p-6">
+        <div className="flex-1 w-full bg-white rounded-lg shadow-sm p-6">
           {/* Question Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">
@@ -619,7 +618,7 @@ export default function MockTestPage() {
                   handleAnswerSelect(e.target.value)
                 }
                 placeholder="Enter your answer here..."
-                className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full h-32 p-3 sm:p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               />
             ) : (
               currentQ?.options.map((option: string, index: number) => (
@@ -672,7 +671,7 @@ export default function MockTestPage() {
         </div>
 
         {/* Question Palette */}
-        <div className="w-80 bg-white rounded-lg shadow-sm p-6">
+        <div className="w-full lg:w-80 bg-white rounded-lg shadow-sm p-4">
           <h3 className="font-semibold text-gray-900 mb-4">Question Palette</h3>
 
           {/* Legend */}
@@ -746,7 +745,7 @@ export default function MockTestPage() {
       {/* Confirm Submit Modal */}
       {showConfirmSubmit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-6 h-6 text-yellow-500" />
               <h3 className="text-lg font-semibold">Confirm Submission</h3>

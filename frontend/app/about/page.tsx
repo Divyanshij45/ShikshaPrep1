@@ -32,7 +32,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-lg">
-            <img src="/placeholder.svg?height=400&width=500" alt="Our Mission" className="w-full h-auto rounded-lg" />
+            <img src="https://images.app.goo.gl/2d1sq9sZr2ipGnkXA" alt="Our Mission" style={{ width: '100%', height: 'auto' }}  className="w-full h-auto rounded-lg" />
           </div>
         </div>
 
@@ -49,7 +49,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  We ensure our AI generates relevant, accurate questions that truly test understanding
+                 Our system ensures your PDFs are cleanly and accurately extracted. After taking the test, you’ll receive precise and helpful answers powered by AI.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -63,7 +63,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Save hours of manual work with our instant PDF to mock test conversion
+                  Save hours of manual searching — just upload and ask using ShikshaPrep
                 </CardDescription>
               </CardContent>
             </Card>
@@ -119,8 +119,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Analysis</h3>
               <p className="text-gray-600">
-                Our advanced AI analyzes your document, identifies key concepts, and generates diverse question types
-                including multiple choice, true/false, and short answers.
+                Our advanced AI analyzes your document, identifies key concepts, Questions and understands the context to answer questions accurately.
               </p>
             </div>
 

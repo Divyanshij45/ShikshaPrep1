@@ -83,7 +83,7 @@ export default function SignUpPage() {
                 id="username"
                 name="username"
                 type="text"
-                placeholder="johndoe"
+                placeholder="Enter your user name"
                 value={formData.username}
                 onChange={handleInputChange}
                 required
@@ -96,7 +96,7 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder=""
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleInputChange}
                 required
